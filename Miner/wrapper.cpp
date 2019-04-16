@@ -89,12 +89,14 @@ void Wrapper::enterButtonDelay() {
 //Method For Selecting Automated Or Manual Mode
 char Wrapper::automatedOrManual(){
     printMessage("Please Enter 'a' For Automated Calibration or 'm' For Manual Calibration");
+    std::string tempString;
     while(true){
-        if(std::cin.get() == 'a'){
+        tempString = std::cin.get();
+        if(tempString == "a"){
             printMessage("Automated Calibration Selected");
             return 'a';
         }
-        else if (std::cin.get() == 'm'){
+        else if (tempString == "m"){
             printMessage("Manual Calibration Selected");
             return 'm';
         }
@@ -165,14 +167,30 @@ void Wrapper::manualLogic(){
 }
 
 bool Wrapper::CSVInput(){
-    std::fstream fout;
+    std::fstream fin;
+
     float tempStep, tempX, tempY, tempZ;
-    fout.open("inputtedData.csv");
-    for(int i = 0; i < 18; i++){
-        cin >>tempStep >> tempX >> tempY >> tempZ;
-        SubPosition * step = new SubPosition(tempStep,tempX,tempY,tempZ);
-        allSubPositions.push_front(step);
+    fin.open("/home/morgan/Desktop/Miner/inputtedData.csv");
+    int eof = fin.eof();
+
+    std::string tempStr[4] = {""};
+    while(eof != 1) {
+        for (int i = 0; i < 4; i++) {
+            if(i == 3) {
+                getline(fin, tempStr[i], '\n');
+            }
+            else  {
+                getline(fin, tempStr[i], ',');
+            }
+        }
+        if(tempStr[0] != ""){
+            SubPosition * step = new SubPosition(std::stof(tempStr[0]),std::stof(tempStr[1]),std::stof(tempStr[2]),std::stof(tempStr[3]));
+            allSubPositions.push_front(step);
+        }
+        eof = fin.eof();
     }
+    fin.close();
+    printMessage("Exiting CSV");
 }
 /*********************************************************
 *                   TRAX USE METHODS                     *

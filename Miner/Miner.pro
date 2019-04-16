@@ -31,3 +31,6 @@ HEADERS += \
     unix.h \
     v8stdint.h \
     localmailbox.h
+
+DISTFILES += \
+    inputtedData.csv
