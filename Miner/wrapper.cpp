@@ -75,6 +75,17 @@ void Wrapper::delayBy(int amount){
     }
 }
 
+void Wrapper::safteyDelay(){
+    printMessage("STEP BACK FROM TABLE: Acknowledge By Hitting Enter");
+    enterButtonDelay();
+    printMessage("STEP BACK");
+    for(int i = 0; i < 5; i++){
+        delayBy(1);
+        //std::cout << ".";
+}
+    std::cout << std::endl;
+}
+
 //Method For Debug Print Statements
 void Wrapper::printMessage(std::string s){
     std::cout << s << std::endl;
@@ -82,8 +93,12 @@ void Wrapper::printMessage(std::string s){
 
 //Method To Delay Until Enter Button Is Hit
 void Wrapper::enterButtonDelay() {
-    printMessage("USER: Press Enter To Take Point");
-    while(std::cin.get() == '\r'){}
+    printMessage("USER: Press Enter");
+    while(1){
+        if(std::cin.get() == '\r' || std::cin.get() == '\n'){
+            break;
+        }
+    }
 }
 
 //Method For Selecting Automated Or Manual Mode
@@ -108,32 +123,37 @@ char Wrapper::automatedOrManual(){
 
 //Method For Automated Calibration Logic
 void Wrapper::automatedLogic(){
-    tm.initCal();
+    safteyDelay();
+    calibrationInit();
+    updateDesiredSubPosition();
     while(1){
         printMessage("********************************************************");
-        //Formulate TX
-        //Send TX
-        //Delay
-        //Read RX
-        //Decompose RX
+        delayBy(5);
+        setAllArduino(); // set position data from wrapper to local mail
+        lm.sendTX();        // send command
+        lm.readRX();        // read command
+        getAllArduinoXYZ();     // set new position data from mail to wrapper
+        printArduinoData();
+
+        //Update Variables To Wrapper Level
         if(comparePointValues()){
             if(takeTraxPoint()){
                 if(checkFinalStep()){
                     printMessage("********************************************************");
                     if(getTraxCalScore()){
-                        if(saveTraxCal()){
-                            if(setDefaultTraxSettings()){
-                                printMessage("Successfully Calibrated!!!");
-                            }
+                        if(setDefaultTraxSettings()){
+                            printMessage("Successfully Calibrated!!!");
                         }
                     }
                     else{
-                        if(setDefaultTraxSettings()){
-                            printMessage("Unsuccesfully Calibrated...");
-                        }
+                        printMessage("Unsuccesfully Calibrated...");
                     }
                 }
             }
+            updateDesiredSubPosition();
+        }
+        else{
+            printMessage("FALSE");
         }
     }
 }
@@ -148,18 +168,14 @@ void Wrapper::manualLogic(){
             if(checkFinalStep()){
                 printMessage("********************************************************");
                 if(getTraxCalScore()){ //Change To Grab Variable?
-                    if(saveTraxCal()){ //Commented Out To Prevent Bad Saves
-                        if(setDefaultTraxSettings()){
-                            std::cout << "Successfully Calibrated!!!" << std::endl;
-                            break;
-                        }
+                    if(setDefaultTraxSettings()){
+                        std::cout << "Successfully Calibrated!!!" << std::endl;
+                        break;
                     }
                 }
                 else{
-                    if(setDefaultTraxSettings()){
-                        std::cout << "Unsuccesfully Calibrated..." << std::endl;
-                        break;
-                    }
+                    std::cout << "Unsuccesfully Calibrated..." << std::endl;
+                    break;
                 }
             }
         }
@@ -168,7 +184,7 @@ void Wrapper::manualLogic(){
 
 bool Wrapper::CSVInput(){
     std::fstream fin;
-
+    printMessage("Uploading Data");
     float tempStep, tempX, tempY, tempZ;
     fin.open("/home/morgan/Desktop/Miner/inputtedData.csv");
     int eof = fin.eof();
@@ -191,7 +207,18 @@ bool Wrapper::CSVInput(){
     }
     fin.close();
     printMessage("Exiting CSV");
+    return true;
 }
+
+void Wrapper::printArduinoData(){
+    printMessage("********************************************************");
+    printf("Desired X, Y, Z Position: %f, %f, %f\n",desiredPositionX,desiredPositionY,desiredPositionZ);
+    std::cout << "Current X Position:" << arduinoPositionX << std::endl;
+    std::cout << "Current Y Position:" << arduinoPositionY << std::endl;
+    std::cout << "Current Z Position:" << arduinoPositionZ << std::endl;
+
+}
+
 /*********************************************************
 *                   TRAX USE METHODS                     *
 **********************************************************/
@@ -370,4 +397,10 @@ void Wrapper::setArduinoY(float newArduinoY){
 //Method For Setting The ArduinoZ Desired Variable
 void Wrapper::setArduinoZ(float newArduinoZ){
     lm.setArduinoZ(newArduinoZ);
+}
+
+void Wrapper::setAllArduino(){
+    setArduinoX(desiredPositionX);
+    setArduinoY(desiredPositionY);
+    setArduinoZ(desiredPositionZ);
 }

@@ -64,11 +64,13 @@ public:
     bool comparePointValues();
     bool calibrationInit();
     void delayBy(int amount);
+    void safteyDelay();
     void printMessage(std::string s);
     char automatedOrManual(); //Done
     void automatedLogic();
     void manualLogic(); //Done
     bool CSVInput(); //Untested
+    void printArduinoData();
 
 /*********************************************************
 *                   TRAX USE METHODS                     *
@@ -97,8 +99,8 @@ public:
     void setArduinoX(float newArduinoX);
     void setArduinoY(float newArduinoY);
     void setArduinoZ(float newArduinoZ);
+    void setAllArduino();
 
-    void formulateFirstTX();
 
 private:
     //Used For Desired Sub Position

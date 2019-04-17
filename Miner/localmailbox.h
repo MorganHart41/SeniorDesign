@@ -2,11 +2,15 @@
 #define LOCALMAILBOX_H
 
 #include "serial.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
 
 class LocalMailbox
 {
 public:
-    LocalMailbox(){};
+    LocalMailbox():
+        serPort1("/dev/ttyACM0", 38400, serial::Timeout::simpleTimeout(80)){}
 
     /*********************************************************
     *                         SETTERS                        *
@@ -27,6 +31,7 @@ public:
     float getVelocityX(){return velocityX;}
     float getVelocityY(){return velocityY;}
     float getVelocityZ(){return velocityZ;}
+    float getSequenceNum(){return sequenceNum;}
 
 
     /*********************************************************
@@ -34,10 +39,16 @@ public:
     **********************************************************/
     bool sendTX();
     bool readRX();
+    void computeSequence(uint8_t sequenceArray[4]);
 private:
+    serial::Serial serPort1;  // Check port path matches if move systems
     float arduinoX, arduinoY, arduinoZ; //For Send
     float receivedArduinoX, receivedArduinoY, receivedArduinoZ; //For Received
     float velocityX, velocityY, velocityZ;
+    float sequenceNum;
 };
+
+void floatToBytes(float passedFloat, uint8_t bytes[4]);
+float bytesToFloat(uint8_t bytes[4]);
 
 #endif // LOCALMAILBOX_H
